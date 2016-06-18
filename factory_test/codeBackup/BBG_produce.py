@@ -17,10 +17,20 @@ import multiprocessing
 from bluetooth_test import *
 import threading
 import multiprocessing
-from oled96x96 import *
 
-oled = OLED96x96()
 
+'''
+bluetooth_test_status = 'error'
+def bluetooth_thread():
+    global bluetooth_test_status
+    if 'ok' == bluetooth_preInit():
+        bl = Bluetoothctl()
+        dist_mac_addr = os.popen("cat /media/usb1/mac_addr.txt").read()[:17]
+        if 'ok' == bl.run_test(dist_mac_addr):
+            bluetooth_test_status = 'ok'
+    else:
+        print "bluetooth test error"
+'''
 
 OK_PIN = 88  # "P9_42"
 NG_PIN = 64  # "P9_18"
@@ -162,10 +172,7 @@ if __name__ == '__main__':
         #mac_addr = '2CF7F1060001'
         
         print  "start readID"
-        oled.myPrint("Barcode", "RD")
         id, mac_addr = barcode_kbd.readID() 
-        oled.printBackLine()
-        oled.myPrint("Barcode", "OK")
         report_file = id
         okfile = id
         #report_file = 'BBG115051111'
@@ -193,14 +200,11 @@ if __name__ == '__main__':
  
         '''usb ethent port test'''
         os.system("echo \"-------------------------------USB Ethent test------------------------------\n\" >> " + report_file)
-        child1 = subprocess.Popen("ifconfig eth0", shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-        rcv_str = child1.communicate()       
-        if "Device not found" in rcv_str[1]:
-            oled.myPrint("USB", "   Fail")
+        rcv_str = subprocess.Popen("ifconfig eth0", shell=True, stdout=subprocess.PIPE).stdout.read()       
+        if "Device not found" in rcv_str:
             os.system("echo \"USB Ethernet Port Test ------>[fail]\n\n\" >> " + report_file)            
             report_error()
         else:
-            oled.myPrint("USB", "   OK")
             os.system("echo \"USB Ethernet Port Teset------>[pass]\n\n\" >> " + report_file)
 
 #        P = multiprocessing.Process(target=wifi_scan)
@@ -212,22 +216,18 @@ if __name__ == '__main__':
         ddrsize = float(ddr_file.readMemory()[0:6])
         print  'ddrsize: ', ddrsize
         # if ddrsize > 507904:
-        if ddrsize > 503904:    
-            oled.myPrint("DDR", "   OK")        
+        if ddrsize > 503904:            
             os.system("echo \"DDR size: ' + ddr_file.readMemory() + '------>[pass]\n\n\" >> " + report_file)
-        else:  
-            oled.myPrint("DDR", "   Fail")          
+        else:            
             os.system("echo \"DDR size: ' + ddr_file.readMemory() + '------>[fail]\n\n\" >> " + report_file)            
             report_error()
         
         '''eMMC test'''        
         os.system("echo \"-------------------------------eMMC test------------------------------\n\" >> " + report_file)
         emmcsize = ddr_file.getemmcsize()
-        if emmcsize > 3.6:      
-            oled.myPrint("EMMC", "  OK")      
+        if emmcsize > 3.6:            
             os.system("echo \"eMMc size: ' + '%f'%emmcsize + ' GB ------>[pass]\n\n\" >> " + report_file)
-        else:  
-            oled.myPrint("EMMC", "  Fail")          
+        else:            
             os.system("echo \"eMMc size: ' + '%f'%emmcsize + ' GB ------>[fail]\n\n\" >> " + report_file)
             report_error()    
         
@@ -235,11 +235,9 @@ if __name__ == '__main__':
         print "Debug Uart test"        
         os.system("echo \"----------------------------Debug Uart test---------------------------\n\" >> " + report_file)
 
-        if pins.check_debug_uart() == 'ok':   
-            oled.myPrint("DEBUG", " OK")         
+        if pins.check_debug_uart() == 'ok':            
             os.system("echo \"Debug Uart test   ------>[pass]\n\n\" >> " + report_file)
-        else:    
-            oled.myPrint("DEBUG", " Fail")        
+        else:            
             os.system("echo \"Debug Uart test   ------>[fail]\n\n\" >> " + report_file)
             report_error()    
             
@@ -250,25 +248,21 @@ if __name__ == '__main__':
         os.system("sync")
         os.system("sync")
         os.system("sync")
-        if pins.check_uart() == 'ok':  
-            oled.myPrint("UART", "  OK")          
+        if pins.check_uart() == 'ok':            
             os.system("echo \"Grove Uart test   ------>[pass]\n\n\" >> " + report_file)
-        else:    
-            oled.myPrint("UART", "  Fail")        
+        else:            
             os.system("echo \"Grove Uart test   ------>[fail]\n\n\" >> " + report_file)
             report_error()
-        '''
+        
         # Grove I2C test
         print "Grove I2C test"        
         os.system("echo \"----------------------------Grove I2C test----------------------------\n\" >> " + report_file)
-        if pins.check_i2c() == 'ok':   
-            oled.myPrint("I2C TEST", "OK")                 
+        if pins.check_i2c() == 'ok':                    
             os.system("echo \"Grove I2C test   ------>[pass]\n\n\" >> " + report_file)
-        else:    
-            oled.myPrint("I2C TEST", "Fail")                  
+        else:                      
             os.system("echo \"Grove I2C test   ------>[fail]\n\n\" >> " + report_file)
             report_error()
-        '''    
+            
         
         # analog pins test
         print "analog pins test"        
@@ -276,11 +270,9 @@ if __name__ == '__main__':
         status,result = pins.check_voltage()
         for v in result:            
             os.system("echo \""+ v + "\n\" >> " + report_file)
-        if status == 'ok':   
-            oled.myPrint("ANALOG", "OK")         
+        if status == 'ok':            
             os.system("echo \"analog pins test   ------>[pass]\n\n\" >> " + report_file)
-        else:  
-            oled.myPrint("ANALOG", "Fail")          
+        else:            
             os.system("echo \"analog pins test   ------>[fail]\n\n\" >> " + report_file)
             report_error()
         
@@ -292,11 +284,9 @@ if __name__ == '__main__':
         for v in result:
             #report.write(v+'\n')
             os.system("echo \"" + v + "\n\" >> " + report_file)
-        if status == 'ok':  
-            oled.myPrint("PMU", "   OK")          
+        if status == 'ok':            
             os.system("echo \"PMU test   ------>[pass]\n\n\" >> " + report_file)
-        else:     
-            oled.myPrint("PMU", "   Fail")       
+        else:            
             os.system("echo \"PMU test   ------>[fail]\n\n\" >> " + report_file)
             report_error()
         
@@ -307,15 +297,13 @@ if __name__ == '__main__':
         badio = []        
         os.system("echo \"config-test-gpio overlay gpio-test\" >> " + report_file)
         badio = pins.check_io()
-        if len(badio) != 0:       
-            oled.myPrint("GPIO", "  Fail")     
+        if len(badio) != 0:            
             os.system("echo \"" + "gpio test ------>[fail]\n\n" + "\" >> " + report_file)
             for pin in badio:
                 #report.write(str(pin) +'\n')            
                 os.system("echo \"" + str(pin) + "\n" + "\" >> " + report_file)
             report_error()
-        else:           
-            oled.myPrint("GPIO", "  OK") 
+        else:            
             os.system("echo \"" + "gpio test ------>[pass]\n\n" + "\" >> " + report_file)
 
         ''' 
@@ -340,15 +328,17 @@ if __name__ == '__main__':
         wifiStatus = wifi_scan()
                   
         if 'ok' == wifiStatus:
-            oled.myPrint("WiFi", "  OK")
             os.system("echo \"WiFi test ------->[passed]\n\n\" >> " + report_file)    
-        else:   
-            oled.myPrint("WiFi", "  Fail")                 
+        else:                    
             os.system("echo \"WiFi test ------->[fail]\n\n\" >> " + report_file)
             report_error()
 
 
         bluetooth_thread()
+
+        os.system("echo \"************************************************************************\n\n\" >> " + report_file)
+        time_use = str(time.time()-test_start) 
+        os.system("echo \"" + "Test use time: " + time_use + "\n\n"  + "\" >> " + report_file)
 
         P8_43 = mraa.Gpio(43)    #GPIO.setup('P8_43', GPIO.IN)
         P8_43.dir(mraa.DIR_IN)
@@ -380,21 +370,15 @@ if __name__ == '__main__':
         # Actually because of the struct style, mac_addr has 18 bytes
         _mac_addr = _mac_addr[:12]
        
-        if serial == id and mac_addr == str(_mac_addr):  
-            oled.myPrint("EEPROM", "OK")          
+        if serial == id and mac_addr == str(_mac_addr):            
             os.system("echo \"write board serial: ' + serial + '------>[pass]\n\n\" >> " + report_file)
             os.system("echo \"write board mac_addr: ' + '%s'%_mac_addr + '------>[pass]\n\n\" >> " + report_file)
             os.system("echo \"write board version: ' + '%s'%version + '------>[pass]\n\n\" >> " + report_file)
-        else:     
-            oled.myPrint("EEPROM", "Fail")       
+        else:            
             os.system("echo \"write board serial: ' + serial + '------>[fail]\n\n\" >> " + report_file)            
             os.system("echo \"write board mac_addr: ' + '%s'%_mac_addr + '------>[fail]\n\n\" >> " + report_file)            
             os.system("echo \"write board version: ' + '%s'%version + '------>[fail]\n\n\" >> " + report_file)            
             report_error()
-
-        os.system("echo \"************************************************************************\n\n\" >> " + report_file)
-        time_use = str(time.time()-test_start) 
-        os.system("echo \"" + "Test use time: " + time_use + "\n\n"  + "\" >> " + report_file)
            
         os.system("sync")
         os.system("mv "+report_file+" "+okfile)
@@ -408,4 +392,5 @@ if __name__ == '__main__':
         report_error()    
 
  
+
 

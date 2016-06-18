@@ -1,0 +1,9 @@
+connect 78:09:73:C8:90:C7
+[bluetooth]# [0;94m[bluetooth][0m#                         [[0;92mNEW[0m] Controller 18:11:22:33:44:55 beaglebone [default]
+[0;94m[bluetooth][0m#                         [[0;92mNEW[0m] Device 78:09:73:C8:90:C7 301
+[0;94m[bluetooth][0m# connect 78:09:73:C8:90:C7
+Attempting to connect to 78:09:73:C8:90:C7
+[0;94m[bluetooth][0m#                         [[0;93mCHG[0m] Device 78:09:73:C8:90:C7 Connected: yes
+[0;94m[bluetooth][0m#                         Connection successful
+[0;94m[bluetooth][0m# disconnect 78:09:73:C8:90:C7
+quit

@@ -101,7 +101,115 @@ class Bluetoothctl:
 
         return self.child.before.split("\r\n")
 
+    def start_scan(self):        
+        """Start bluetooth scanning process."""
+        try:
+            out = self.get_output("scan on")
+        except BluetoothctlError, e:
+            print(e)
+            return None
 
+    def make_discoverable(self):
+        """Make device discoverable."""
+        try:
+            out = self.get_output("discoverable on")
+        except BluetoothctlError, e:
+            print(e)
+            return None
+
+    def parse_device_info(self, info_string):
+        """Parse a string corresponding to a device."""
+        device = {}
+        block_list = ["[\x1b[0;", "removed"]
+        string_valid = not any(keyword in info_string for keyword in block_list)
+
+        if string_valid:
+            try:
+                device_position = info_string.index("Device")
+            except ValueError:
+                pass
+            else:
+                if device_position > -1:
+                    attribute_list = info_string[device_position:].split(" ", 2)
+                    device = {
+                        "mac_address": attribute_list[1],
+                        "name": attribute_list[2]
+                    }
+
+        return device
+
+    def get_available_devices(self):
+        """Return a list of tuples of paired and discoverable devices."""
+        try:
+            out = self.get_output("devices")
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            available_devices = []
+            for line in out:
+                device = self.parse_device_info(line)
+                if device:
+                    available_devices.append(device)
+
+            return available_devices
+
+    def get_paired_devices(self):
+        """Return a list of tuples of paired devices."""
+        try:
+            out = self.get_output("paired-devices")
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            paired_devices = []
+            for line in out:
+                device = self.parse_device_info(line)
+                if device:
+                    paired_devices.append(device)
+
+            return paired_devices
+
+    def get_discoverable_devices(self):
+        """Filter paired devices out of available."""
+        available = self.get_available_devices()
+        paired = self.get_paired_devices()
+
+        return [d for d in available if d not in paired]
+
+    def get_device_info(self, mac_address):
+        """Get device info by mac address."""
+        try:
+            out = self.get_output("info " + mac_address)
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            return out
+
+    def pair(self, mac_address):
+        """Try to pair with a device by mac address."""
+        try:
+            out = self.get_output("pair " + mac_address, 4)
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            res = self.child.expect(["Failed to pair", "Pairing successful", pexpect.EOF])
+            success = True if res == 1 else False
+            return success
+
+    def remove(self, mac_address):
+        """Remove paired device by mac address, return success of the operation."""
+        try:
+            out = self.get_output("remove " + mac_address, 3)
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            res = self.child.expect(["not available", "Device has been removed", pexpect.EOF])
+            success = True if res == 1 else False
+            return success
 
     def connect(self, mac_address):
         """Try to connect to a device by mac address."""
@@ -115,31 +223,41 @@ class Bluetoothctl:
             success = True if res == 1 else False
             return success
 
-
+    def disconnect(self, mac_address):
+        """Try to disconnect to a device by mac address."""
+        try:
+            out = self.get_output("disconnect " + mac_address, 2)
+        except BluetoothctlError, e:
+            print(e)
+            return None
+        else:
+            res = self.child.expect(["Failed to disconnect", "Successful disconnected", pexpect.EOF])
+            success = True if res == 1 else False
+            return success
 
 #    def run_test(self,dist_mac_addr = "78:09:73:C8:90:C7"):
-    def run_test(self,dist_mac_addr = "52:4E:79:28:67:3C"):
-        count =4
+    def run_test(self,dist_mac_addr = "51:91:E2:BF:AE:47"):
         status = 'error'   
-        while count > 0 :
-            print "connect to[1] : " + dist_mac_addr    
+        print "connect to[1] : " + dist_mac_addr    
+        self.child.sendline("connect " + dist_mac_addr)
+        time.sleep(1)
+        results = self.child.expect(["Connection successful", "Fail", "org.bluez.Error.Failed", pexpect.EOF,pexpect.TIMEOUT], timeout=10)
+        print "connect speaker[1] result: ",results
+        if 0 < results:
+            print "connect to speaker second time"
             self.child.sendline("connect " + dist_mac_addr)
-            time.sleep(1)
+            time.sleep(4)
             results = self.child.expect(["Connection successful", "Fail", "org.bluez.Error.Failed", pexpect.EOF,pexpect.TIMEOUT], timeout=10)
-            print "connect speaker result: ",results
+            print "connect speaker[2] result: ", results 
             if 0 < results:
-                print "test whether connect ok?"
+                print "connect to spearker third time"
+                self.child.sendline("connect " + dist_mac_addr)
                 time.sleep(4)
-                self.child.sendline("info " + dist_mac_addr)
-                time.sleep(1)
-                results = self.child.expect(["Connected: yes", "Connected: no", pexpect.EOF,pexpect.TIMEOUT], timeout=5)
-                if results > 0:
-                    count = count -1
-                else:
-                    count = 0
-            else:
-                count = 0
-        time.sleep(0.5)
+                results = self.child.expect(["Connection successful", "Fail", "org.bluez.Error.Failed", pexpect.EOF,pexpect.TIMEOUT], timeout=10)
+                print "connect speaker[3] result: ", results 
+                if 0 < results:
+                    return status
+        print "play music anymore"
         if dist_mac_addr=="51:91:E2:BF:AE:47" :     
             os.system("mpg123 /root/factory_test/music/unit1.mp3")
         elif dist_mac_addr=="49:7A:10:6F:2D:D4":
@@ -160,14 +278,13 @@ class Bluetoothctl:
             os.system("mpg123 /root/factory_test/music/unit9.mp3")
         elif dist_mac_addr=="52:4E:79:28:67:3C":
             os.system("mpg123 /root/factory_test/music/unit10.mp3")
+			
         time.sleep(1)
         self.child.sendline("disconnect " + dist_mac_addr)
         status = 'ok'
         time.sleep(1.5)                    
+        # self.child.sendline("quit")
         return status
-
-
-   
 
 if __name__ == "__main__":
     if 'ok' == bluetooth_preInit():
@@ -176,8 +293,8 @@ if __name__ == "__main__":
         print "bluetooth test result: ", result
     else:
         print "error"  
-
         
 
  
+
 

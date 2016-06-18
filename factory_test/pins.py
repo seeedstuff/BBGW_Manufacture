@@ -1,72 +1,51 @@
+import mraa
+import subprocess
 import sys, time, signal
 import math
 import serial
 import struct
 import os
 import threading
-import mraa
-import subprocess
-
 class duait():
     def __init__(self):
         self.istesting = 1
-        self.uart = serial.Serial(port = "/dev/ttyUSB0", baudrate=115200, timeout=5)
+
+        self.uart = serial.Serial(port = "/dev/ttyUSB0", baudrate=115200)
         self.uart.flush()
-        self.uarto = serial.Serial(port = "/dev/ttyO0", baudrate=115200, timeout=.7)
+        self.uarto = serial.Serial(port = "/dev/ttyO0", baudrate=115200)
         self.uarto.flush()
-        #self.t = threading.Thread(target=self.write_a)
-        #self.t.start()
+        self.t = threading.Thread(target=self.write_a)
+        self.t.start()
     def write_a(self):
         while True:
             self.uarto.write('a')
             if self.istesting == 0:
                 break
-            time.sleep(0.02)
+            time.sleep(0.1)
 
     def read_a(self):
         cnt = 0
         status = 'error'
-        while cnt < 250:
+        while cnt < 200:
             ch = self.uart.read(1)
             if  ch == 'a':
                 self.istesting = 0
                 status = 'ok'
                 break
             print ch
-            time.sleep(0.01)
+            time.sleep(0.3)
             cnt = cnt + 1
         self.istesting = 0
         return  status
-'''
 def check_debug_uart():
     uart = duait()
-    count = 20
-    while count > 0:
-        uart.uarto.write("a")
-        uart.uarto.write("a")
-        uart.uarto.write("a")
-        uart.uarto.write("a")
-        time.sleep(0.1)
-        out = uart.uart.read()
-        if out == 'a':
-            return 'ok'
-        count = count - 1
-'''
-
-def check_debug_uart():
-    status = 'error'
-    uart = duait()
-    uart.uart.write("\r\n")
-    while 0 == uart.uart.readable():
-        pass
-    while True:
-        out = uart.uart.readline()
-        print out
-        if "Debian" in out or "root" in out:
-            status = "ok"
-            break
+    status = ''
+    if uart.read_a() == 'ok':
+        status = 'ok'
+    else:
+        status =  'error'
     return status
-
+    
 class GPS:
     #The GPS module used is a Grove GPS module http://www.seeedstudio.com/depot/Grove-GPS-p-959.html
     inp=[]
@@ -420,7 +399,7 @@ def check_power():
 if __name__ == '__main__':
     #print "check_power: ", check_power()
     #print "check_voltage: ", check_voltage()    
-    #print "check_i2c: ", check_i2c()
+    print "check_i2c: ", check_i2c()
     #print "check_io: ", check_io()    
     #print "check_uart: ", check_uart()
-    print "check_debug", check_debug_uart()
+

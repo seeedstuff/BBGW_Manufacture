@@ -1,0 +1,11 @@
+-------------------------------eeprom test------------------------------
+
+write board serial: ' + serial + '------>[fail]
+
+
+write board mac_addr: ' + '%s'%_mac_addr + '------>[fail]
+
+
+write board version: ' + '%s'%version + '------>[fail]
+
+

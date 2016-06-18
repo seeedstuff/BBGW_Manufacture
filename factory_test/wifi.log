@@ -1,9 +1,11 @@
-connmanctl> [Kconnmanctl> [KError getting VPN connections: The name net.connman.vpn was not provided by any .service filesconnmanctl> [Kconnmanctl> [Kconnmanctl> scan wifi
+connmanctl>             connmanctl>             Error getting VPN connections: The name net.connman.vpn was not provided by any .service filesconnmanctl>             connmanctl>             connmanctl> scan wifi
 scan wifi
-connmanctl> [KScan completed for wifi
+connmanctl>             Scan completed for wifiservices
+
 connmanctl> services
-services
-connmanctl> [K    SEEED-MKT            wifi_deadbeef0000_53454545442d4d4b54_managed_psk
+connmanctl>                 SEEED-MKT            wifi_deadbeef0000_53454545442d4d4b54_managed_psk
+    ZTE-RJ               wifi_deadbeef0000_5a54452d524a_managed_psk
+    QQ                   wifi_deadbeef0000_5151_managed_psk
     SEEED                wifi_deadbeef0000_5345454544_managed_psk
     SEEED-Guest          wifi_deadbeef0000_53454545442d4775657374_managed_psk
 connmanctl> quit
