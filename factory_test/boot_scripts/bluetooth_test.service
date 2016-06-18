@@ -1,0 +1,9 @@
+[Unit]
+Description=BBG mass produce bluetooth test Service
+After=bluetooth.service
+
+[Service]
+ExecStart=python /root/factory_test/bluetooth_test.py
+
+[Install]
+WantedBy=multi-user.target

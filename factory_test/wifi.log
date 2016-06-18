@@ -1,0 +1,9 @@
+connmanctl> [Kconnmanctl> [KError getting VPN connections: The name net.connman.vpn was not provided by any .service filesconnmanctl> [Kconnmanctl> [Kconnmanctl> scan wifi
+scan wifi
+connmanctl> [KScan completed for wifi
+connmanctl> services
+services
+connmanctl> [K    SEEED-MKT            wifi_deadbeef0000_53454545442d4d4b54_managed_psk
+    SEEED                wifi_deadbeef0000_5345454544_managed_psk
+    SEEED-Guest          wifi_deadbeef0000_53454545442d4775657374_managed_psk
+connmanctl> quit

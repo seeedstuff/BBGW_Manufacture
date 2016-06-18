@@ -1,0 +1,9 @@
+[Unit]
+Description=BBG mass produce test Service
+After=bluetooth.serive
+
+[Service]
+ExecStart=/opt/scripts/boot/factory_check.sh 
+
+[Install]
+WantedBy=multi-user.target
